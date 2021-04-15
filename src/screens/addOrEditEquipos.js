@@ -1,7 +1,6 @@
 import React, { useState,useEffect } from 'react'
 import AsyncSelect from 'react-select'
 import { db } from '../component/fire'
-import 'bootswatch/dist/superhero/bootstrap.min.css';
 
 
 function Equipos(props) {
@@ -53,7 +52,7 @@ function Equipos(props) {
         setEquipo({ ...equipo, cliente: newValue.value })
       };
       const getClientes = () => {
-        db.collection('clientes').onSnapshot((items) => {
+        db.collection('clientes').where("tipo", "==", 'cliente').onSnapshot((items) => {
             items.forEach(item => {
                 clientesOptions.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().mail })
             })
@@ -70,12 +69,14 @@ function Equipos(props) {
                 >Add New</button>
             </div>
         ) : null
-
+        
     return (
-        <div className="App" >
-
+        <div className="Equipos">
+            {console.log('aq'+props.modo)}
             <section className='login'>
-                <div className='container' style={{ paddingTop: 50 }}>
+                <div className='container' style={{width:450}} >
+                <div className="formg-roup"></div>
+
                 <div className="formg-roup">
                         <label>Cliente</label>
                         <AsyncSelect
@@ -137,7 +138,7 @@ function Equipos(props) {
                             style={{ margin: 16 }}
                             onClick={() => addEquipo()}
                         >
-                            Crear Incidencias
+                            Crear Equipo
                             </button>
                         <button
                             className="btn btn-primary btn-block"

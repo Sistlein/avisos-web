@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
 import { db } from '../component/fire'
-import 'bootswatch/dist/superhero/bootstrap.min.css';
 
 
-function Clientes() {
+function Clientes(props) {
     const clienteInicial = {
         nombre: '',
         direccion: '',
@@ -12,6 +11,7 @@ function Clientes() {
         telefono: '',
         mail: '',
         cif: '',
+        tipo: props.tipo
     }
     const [cliente, setCliente] = useState(clienteInicial)
 
@@ -28,14 +28,22 @@ function Clientes() {
         await db.collection("clientes").doc().set(cliente)
         clearImput()
     }
+    const LabelTipo=()=>{
+        console.log('tipo'+props.tipo)
+        if (props.tipo==='cliente'){
+            return(<label>Cif</label>)
+        }else{
+            return(<label>Código</label>)
+        }
+    }
 
     return (
         <div className="App" >
 
             <section className='login'>
-                <div className='container' style={{ paddingTop: 50 }}>
+            <div className='container' style={{width:450}} >
                     <div className="formg-roup">
-                        <label>Cif</label>
+                        <LabelTipo/>
                         <input
                             name="cif"
                             type="text"

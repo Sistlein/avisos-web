@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import AsyncSelect from 'react-select'
 import { db } from '../component/fire'
-import 'bootswatch/dist/superhero/bootstrap.min.css';
 import Modal from 'react-modal'
 import AddEquipos from './addOrEditEquipos'
 import AddClientes from './addOrEditClientes'
@@ -18,11 +17,12 @@ function Avisos() {
         descripcion: '',
     }
     const clientesOptions = []
+    const tecnicosOptions = []
     const equiposOptions = []
     const [aviso, setAviso] = useState(avisoInicial)
     const [modalEquipo, setModalEquipo] = useState(false)
     const [modalCliente, setModalCliente] = useState(false)
-
+    const [modalTecnico, setModalTecnico] = useState(false)
     const clearImput = () => {
         setAviso(avisoInicial)
     }
@@ -36,15 +36,19 @@ function Avisos() {
         await db.collection("avisos").doc().set(aviso)
         clearImput()
     }
-    const getClientes = () => {
-        db.collection('clientes').onSnapshot((items) => {
+    const getClientes = (tipo) => {
+        db.collection('clientes').where("tipo", "==", tipo).onSnapshot((items) => {
             items.forEach(item => {
-                clientesOptions.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().mail })
+                if (tipo === 'cliente') {
+                    clientesOptions.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().mail })
+                } else {
+                    tecnicosOptions.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().mail })
+                }
             })
         })
     }
     const getEquipos = (cliente) => {
-        db.collection('equipos').where("cliente","==",cliente).onSnapshot((items) => {
+        db.collection('equipos').where("cliente", "==", cliente).onSnapshot((items) => {
             items.forEach(item => {
                 equiposOptions.push({ value: item.id, label: item.data().tipo + ' - ' + item.data().marca + ' - ' + item.data().modelo + ' - ' + item.data().sn })
 
@@ -55,15 +59,16 @@ function Avisos() {
 
     const handleClienteChange = (newValue) => {
         setAviso({ ...aviso, cliente: newValue.value })
-      };
+    };
 
-      const handleEquipoChange = (newValue) => {
+    const handleEquipoChange = (newValue) => {
         setAviso({ ...aviso, equipo: newValue.value })
-      };
+    };
 
     useEffect(() => {
         getEquipos(aviso.cliente);
-        getClientes();
+        getClientes('cliente');
+        getClientes('tecnico');
     })
 
     const CustomMenuEquipo = ({ innerRef, innerProps, isDisabled, children }) =>
@@ -72,52 +77,70 @@ function Avisos() {
                 {children}
                 <button
                     className="btn btn-info btn-sm btn-block"
-                    onClick={()=>setModalEquipo(true)}
+                    onClick={() => setModalEquipo(true)}
                 >Add New</button>
             </div>
         ) : null
-        const CustomMenuCliente = ({ innerRef, innerProps, isDisabled, children }) =>
+    const CustomMenuCliente = ({ innerRef, innerProps, isDisabled, children }) =>
         !isDisabled ? (
             <div ref={innerRef} {...innerProps} className="customReactSelectMenu">
                 {children}
                 <button
                     className="btn btn-info btn-sm btn-block"
-                    onClick={()=>setModalCliente(true)}
+                    onClick={() => setModalCliente(true)}
+                >Add New</button>
+            </div>
+        ) : null
+        const CustomMenuTecnico = ({ innerRef, innerProps, isDisabled, children }) =>
+        !isDisabled ? (
+            <div ref={innerRef} {...innerProps} className="customReactSelectMenu">
+                {children}
+                <button
+                    className="btn btn-info btn-sm btn-block"
+                    onClick={() => setModalTecnico(true)}
                 >Add New</button>
             </div>
         ) : null
 
-        const customStyles = {
-            content : {
-              top                   : '50%',
-              left                  : '50%',
-              right                 : 'auto',
-              bottom                : 'auto',
-              marginRight           : '-50%',
-              transform             : 'translate(-50%, -50%)'
-            }
-          };
+    const customStyles = {
+        content: {
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+            background: "#2b3e50"
+        }
+    };
 
     return (
-        
+
         <div className="App" >
-                   <Modal
-          isOpen={modalEquipo}
-          style={ customStyles}
-        >
-          <button onClick={()=>setModalEquipo(false)}>Cerrar</button>
-          <AddEquipos modal={setModalEquipo}/>
-        </Modal>
-        <Modal
-          isOpen={modalCliente}
-          style={ customStyles}
-        >
-          <button onClick={()=>setModalCliente(false)}>Cerrar</button>
-          <AddClientes modal={setModalCliente}/>
-        </Modal>
+            <Modal
+                isOpen={modalEquipo}
+                style={customStyles}
+            >
+                <button onClick={() => setModalEquipo(false)}>Cerrar</button>
+                <AddEquipos modal={setModalEquipo} />
+            </Modal>
+            <Modal
+                isOpen={modalCliente}
+                style={customStyles}
+            >
+                <button onClick={() => setModalCliente(false)}>Cerrar</button>
+                <AddClientes modal={setModalCliente} tipo='cliente'/>
+            </Modal>
+            <Modal
+                isOpen={modalTecnico}
+                style={customStyles}
+            >
+                <button onClick={() => setModalTecnico(false)}>Cerrar</button>
+                <AddClientes modal={setModalTecnico} tipo='tecnico' />
+            </Modal>
 
             <section className='login'>
-                <div className='container' style={{ paddingTop: 50 }}>
+                <div className='container' style={{ width: 600 }} >
                     <div className="formg-roup">
                         <label>Numero</label>
                         <input
@@ -129,6 +152,15 @@ function Avisos() {
                             required
                             value={aviso.numero}
                             onChange={(e) => handleChangeInput(e)}
+                        />
+                    </div>
+                    <div className="formg-roup">
+                        <label>Tecnico</label>
+                        <AsyncSelect
+                            options={tecnicosOptions}
+                            placeholder='Selecione Cliente'
+                            components={{ Menu: CustomMenuTecnico }}
+                            onChange={handleClienteChange}
                         />
                     </div>
                     <div className="formg-roup">
