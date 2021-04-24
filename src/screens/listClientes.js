@@ -31,18 +31,10 @@ export default function ListadoAvisos() {
         sort: true
     }, {
         dataField: 'marca',
-        text: 'Marca',
-        sort: true
-    },{
-        dataField: 'modelo',
-        text: 'Modelo',
-        sort: true
-    },{
-        dataField: 'sn',
-        text: 'Serial',
+        text: 'Equipo',
         sort: true
     }, {
-        dataField: 'salida'+'entrada',
+        dataField: 'salida',
         text: 'Fecha de Solución',
         sort: true
     }, {
@@ -54,19 +46,23 @@ export default function ListadoAvisos() {
                 onClick={() => {
                     console.log('Product of Category ' + row.numero + ' deleted');
                 }}>
-                Abrir
+                Modificar
              </Button>
                 <Button
                     style={{ marginLeft: 10 }}
                     variant="outline-danger"
-                    onClick={() => {if (window.confirm('¿Seguro que desea eliminar el aviso?')) 
-                    db.collection("avisos").doc(row.numero).delete().then(() => {
-                        console.log("Document successfully deleted!");
-                    }).catch((error) => {
-                        console.error("Error removing document: ", error);
-                    }); } 
-                    }>
+                    onClick={() => {
+                        console.log('Product of Category ' + row.numero + ' deleted');
+                    }}>
                     Eliminar
+          </Button>
+                <Button
+                    style={{ marginLeft: 10 }}
+                    variant="outline-success"
+                    onClick={() => {
+                        console.log('Product of Category ' + row.numero + ' deleted');
+                    }}>
+                    Visualizar
           </Button></>
         }
     }];
@@ -78,7 +74,7 @@ export default function ListadoAvisos() {
 
     return (
         <ToolkitProvider
-            keyField="numero"
+            keyField="id"
             data={listado}
             columns={columns}
             search
@@ -90,6 +86,9 @@ export default function ListadoAvisos() {
                         <SearchBar {...props.searchProps} />
                         <BootstrapTable
                             bootstrap4
+                            keyField="id"
+                            data={listado}
+                            columns={columns}
                             defaultSorted={defaultSorted}
                             pagination={paginationFactory()}
                             {...props.baseProps}

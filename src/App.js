@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { auth } from './component/fire'
 import { Navbar, Nav, NavDropdown, Button, Form } from 'react-bootstrap'
-import { Avisos, Equipos, Clientes,ListadoAvisos } from './screens';
+import { Avisos, Equipos, Clientes,ListadoAvisos,ListadoEquipos,ListadoClientes } from './screens';
 
 
 function App() {
@@ -35,7 +35,6 @@ function App() {
   }
 
   const authListener =  () => {
-    console.log('liste')
     auth.onAuthStateChanged((user) => {
       if (user) {
         setUser(user)
@@ -64,23 +63,17 @@ function App() {
                   <Nav className="mr-auto">
                     <NavDropdown title="Clientes" id="basic-nav-dropdown">
                       <NavDropdown.Item href="/Clientes">Crear</NavDropdown.Item>
-                      <NavDropdown.Item href="#action/3.2">Modificar</NavDropdown.Item>
-                      <NavDropdown.Item href="#action/3.3">Eliminar</NavDropdown.Item>
+                      <NavDropdown.Item href="ClientesModificar">Listar</NavDropdown.Item>
                     </NavDropdown><NavDropdown title="Tecnicos" id="basic-nav-dropdown">
                       <NavDropdown.Item href="/Tecnicos">Crear</NavDropdown.Item>
-                      <NavDropdown.Item href="#action/3.2">Modificar</NavDropdown.Item>
-                      <NavDropdown.Item href="#action/3.3">Eliminar</NavDropdown.Item>
+                      <NavDropdown.Item href="TecnicosModificar">Listar</NavDropdown.Item>
                     </NavDropdown>
                     <NavDropdown title="Equipos" id="basic-nav-dropdown">
                       <NavDropdown.Item href="/Equipos">Crear</NavDropdown.Item>
-                      <NavDropdown.Item href="/EquiposModificar">Modificar</NavDropdown.Item>
-                      <NavDropdown.Item href="#action/3.3">Eliminar</NavDropdown.Item>
+                      <NavDropdown.Item href="/EquiposListado">Listar</NavDropdown.Item>
                     </NavDropdown>
                     <NavDropdown title="Averias" id="basic-nav-dropdown">
                       <NavDropdown.Item href="/Avisos">Crear</NavDropdown.Item>
-                      <NavDropdown.Item href="#action/3.2">Modificar</NavDropdown.Item>
-                      <NavDropdown.Item href="#action/3.3">Eliminar</NavDropdown.Item>
-                      <NavDropdown.Divider />
                       <NavDropdown.Item href="/AvisosListado">Listar</NavDropdown.Item>
                     </NavDropdown>
                   </Nav>
@@ -91,24 +84,29 @@ function App() {
               </Navbar>
               <br />
               <Switch>
-                <Route exact path="/Clientes">
-                  <Clientes tipo='cliente' />
-                </Route>
-                <Route path="/Equipos">
-                  <Equipos modo='add'/>
-                </Route>
-                <Route path="/EquiposModificar">
-                  <Equipos modo='change' />
-                </Route>
-                <Route path="/Avisos">
-                  <Avisos />
-                </Route>
-                <Route path="/Tecnicos">
-                  <Clientes tipo='tecnico' />
-                </Route>
-                <Route path="/AvisosListado">
-                  <ListadoAvisos/>
-                </Route>
+                <Route exact path="/Clientes" render={routeProps=>
+                  <Clientes tipo='cliente' {...routeProps}/>
+                }/>
+                <Route path="/ClientesModificar" render={routeProps=>
+                  <Clientes tipo='cliente' cliente='8t9g2EPr46SZlNthgzDvwPlsZdJ2' {...routeProps} />
+                }/>
+                <Route path="/Equipos" render={routeProps=>
+                  <Equipos {...routeProps} />
+                }/>
+                <Route path='/EquiposListado' render={routeProps=>
+                <ListadoEquipos {...routeProps}/>}/>
+                <Route path="/EquiposModificar" render={routeProps=>
+                  <Equipos {...routeProps} />
+                }/>
+                <Route path="/Avisos" render={routeProps=>
+                  <Avisos />}/>
+                <Route path="/Tecnicos" render={routeProps=>
+                  <Clientes tipo='tecnico' {...routeProps}/>}/>
+                <Route path="/TecnicosModificar" render={routeProps=>
+                  <Clientes tipo='tecnico' cliente='tpdByEaXfHe5DXOsRUm2Bb3NGOD2' {...routeProps} />
+                }/>
+                <Route path="/AvisosListado" render={routeProps=>
+                  <ListadoAvisos {...routeProps}/>}/>
               </Switch>
             </Router>
           </div>

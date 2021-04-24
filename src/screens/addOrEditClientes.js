@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { db } from '../component/fire'
+import React, { useState, useEffect } from 'react'
+import { db,auth } from '../component/fire'
 
 
 function Clientes(props) {
@@ -9,11 +9,13 @@ function Clientes(props) {
         localidad: '',
         provincia: '',
         telefono: '',
-        mail: '',
+        email: '',
         cif: '',
+        password:'',
         tipo: props.tipo
     }
     const [cliente, setCliente] = useState(clienteInicial)
+    const [cambio, setCambio] = useState(false)
 
     const clearImput = () => {
         setCliente(clienteInicial)
@@ -25,25 +27,83 @@ function Clientes(props) {
     }
 
     const addCliente = async () => {
-        await db.collection("clientes").doc().set(cliente)
+        if (props.cliente) {
+            await db.collection("clientes").doc(props.cliente).update(cliente)
+        } else {
+            auth.createUserWithEmailAndPassword(cliente.email, cliente.password)
+                .then(data => {
+                    db.collection("clientes").doc(data.user.uid).set(cliente)
+                })
+                .catch(error => {
+                    console.log(error);
+                });
+            
+        }
         clearImput()
+        props.history.push('/');
     }
-    const LabelTipo=()=>{
-        console.log('tipo'+props.tipo)
-        if (props.tipo==='cliente'){
-            return(<label>Cif</label>)
-        }else{
-            return(<label>Código</label>)
+    const LabelTipo = () => {
+        console.log('tipo' + props.tipo)
+        if (props.tipo === 'cliente') {
+            return (<label>Cif</label>)
+        } else {
+            return (<label>Código</label>)
         }
     }
+
+    const getClientes = async () => {
+        if (props.cliente) {
+            setCambio(true)
+            db.collection("clientes").doc(props.cliente).onSnapshot((cliente) => {
+                if (cliente.exists) {
+                    console.log(cliente.data())
+                    setCliente(cliente.data())
+                }
+            })
+        }
+    }
+
+    useEffect(() => {
+        getClientes()
+    }, [])
 
     return (
         <div className="App" >
 
             <section className='login'>
-            <div className='container' style={{width:450}} >
+                <div className='container' style={{ width: 450 }} >
+                    <div className="formg-roup" >
+                        <label>Email</label>
+                        <input
+                            disabled={cambio}
+                            name="email"
+                            type="email"
+                            className="form-control"
+                            autoFocus
+                            required
+                            value={cliente.email}
+                            onChange={(e) => handleChangeInput(e)}
+                        />
+                    </div>
+                    <span>
+                        {cambio === false ?
+                            <div className="formg-roup" >
+                                <label>Password</label>
+                                <input
+                                    name="password"
+                                    type="password"
+                                    className="form-control"
+                                    autoFocus
+                                    required
+                                    value={cliente.password}
+                                    onChange={(e) => handleChangeInput(e)}
+                                />
+                            </div>
+                            :
+                            <div></div>}
+                    </span>
                     <div className="formg-roup">
-                        <LabelTipo/>
+                        <LabelTipo />
                         <input
                             name="cif"
                             type="text"
@@ -118,18 +178,7 @@ function Clientes(props) {
                             onChange={(e) => handleChangeInput(e)}
                         />
                     </div>
-                    <div className="formg-roup">
-                        <label>Email</label>
-                        <input
-                            name="mail"
-                            type="mail"
-                            className="form-control"
-                            autoFocus
-                            required
-                            value={cliente.mail}
-                            onChange={(e) => handleChangeInput(e)}
-                        />
-                    </div>
+
                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                         <button
                             className="btn btn-primary btn-block"

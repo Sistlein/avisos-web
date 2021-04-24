@@ -1,4 +1,5 @@
-import React, { useState,useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useLocation } from 'react-router'
 import AsyncSelect from 'react-select'
 import { db } from '../component/fire'
 
@@ -9,12 +10,20 @@ function Equipos(props) {
         marca: '',
         modelo: '',
         sn: '',
-        cliente:''
+        nombre: '',
+        direccion: '',
+        telefono: '',
+        email: '',
+        localidad: '',
+        id:''
     }
-    const clientesOptions = []
-    const [equipo, setEquipo] = useState(equipoInicial)
 
-    const tiposOptions = []
+    const [equipo, setEquipo] = useState(equipoInicial)
+    const [valueCliente, setValueCliente] = useState(null)
+    const [valueTipo, setValueTipo] = useState(null)
+    const [clientesOptions, setClientesOptions] = useState()
+    const [tiposOptions, setTiposOptions] = useState()
+    const [cambio, setCambio] = useState(false)
 
     const clearImput = () => {
         setEquipo(equipoInicial)
@@ -26,36 +35,72 @@ function Equipos(props) {
     }
 
     const addEquipo = async () => {
-        await db.collection("equipos").doc().set(equipo)
+        console.log(equipo)
+        if (location.state){
+            await db.collection("equipos").doc(location.state.equipo).update(equipo)
+        }else{
+            await db.collection("equipos").doc(equipo.id).set(equipo)
+        }
         clearImput()
-        props.modal(false)
+        props.history.push('/');
     }
 
-    const getTipo = ()=>{
-        db.collection("tipos").onSnapshot((tipos)=>{
-            tipos.forEach(tipo=>{
-                tiposOptions.push({value: tipo.data().tipo, label: tipo.data().tipo})
-            })    
-        })
-        
-    }
-
-    useEffect(()=>{
-        getTipo();
-        getClientes();
-    })
-    
-     const handleInputChange = (newValue) => {
-        setEquipo({ ...equipo, tipo: newValue.value })
-      };
-      const handleClienteChange = (newValue) => {
-        setEquipo({ ...equipo, cliente: newValue.value })
-      };
-      const getClientes = () => {
-        db.collection('clientes').where("tipo", "==", 'cliente').onSnapshot((items) => {
-            items.forEach(item => {
-                clientesOptions.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().mail })
+    const getTipo = async () => {
+        db.collection("tipos").onSnapshot((tipos) => {
+            const local = []
+            tipos.forEach(tipo => {
+                local.push({ value: tipo.data().tipo, label: tipo.data().tipo })
             })
+            setTiposOptions(local)
+        })
+
+    }
+
+    const location=useLocation()
+
+    const getEquipo = async () => {
+        if (location.state) {
+            setCambio(true)
+            db.collection("equipos").doc(location.state.equipo).onSnapshot((equipo) => {
+                if (equipo.exists) {
+                    console.log(equipo.data())
+                    setValueCliente({ value: equipo.data().nombre, label: equipo.data().nombre + '-' + equipo.data().telefono + '-' + equipo.data().email })
+                    setValueTipo({ value: equipo.data().tipo, label: equipo.data().tipo })
+                    setEquipo(equipo.data())
+                }
+            })
+        }
+    }
+    useEffect(() => {
+        getTipo()
+        getEquipo()
+        getClientes();
+    }, [])
+
+    const handleInputChange = (newValue) => {
+        setEquipo({ ...equipo, tipo: newValue.value })
+        setValueTipo({ value: newValue.value, label: newValue.value })
+    };
+    const handleClienteChange = (newValue) => {
+        console.log(newValue.value)
+        db.collection('clientes').doc(newValue.value).onSnapshot((doc) => {
+            if (doc.exists) {
+                console.log(doc.data())
+                setValueCliente({ value: doc.data().nombre, label: doc.data().nombre + '-' + doc.data().telefono + '-' + doc.data().email })
+                setEquipo({ ...equipo, nombre: doc.data().nombre, direccion: doc.data().direccion, telefono: doc.data().telefono, email: doc.data().email, localidad: doc.data().localidad })
+            } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+            }
+        })
+    };
+    const getClientes = () => {
+        db.collection('clientes').where("cliente", "==", true).onSnapshot((items) => {
+            const local = []
+            items.forEach(item => {
+                local.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().email })
+            })
+            setClientesOptions(local)
         })
     }
 
@@ -65,25 +110,38 @@ function Equipos(props) {
                 {children}
                 <button
                     className="btn btn-info btn-sm btn-block"
-                    onClick={()=>alert('3')}
+                    onClick={() => alert('3')}
                 >Add New</button>
             </div>
         ) : null
-        
+
     return (
         <div className="Equipos">
-            {console.log('aq'+props.modo)}
             <section className='login'>
-                <div className='container' style={{width:450}} >
-                <div className="formg-roup"></div>
+                <div className='container' style={{ width: 450 }} >
+                    <div className="formg-roup"></div>
 
-                <div className="formg-roup">
+                    <div className="formg-roup">
+                        <label>Codigo</label>
+                        <input
+                         disabled={cambio}
+                            type="text"
+                            name="id"
+                            className="form-control"
+                            autoFocus
+                            required
+                            value={equipo.id}
+                            onChange={(e) => handleChangeInput(e)}
+                        />
+                    </div>
+                    <div className="formg-roup">
                         <label>Cliente</label>
                         <AsyncSelect
                             options={clientesOptions}
                             placeholder='Selecione Cliente'
                             components={{ Menu: CustomMenu }}
                             onChange={handleClienteChange}
+                            value={valueCliente}
                         />
                     </div>
                     <div className="formg-roup">
@@ -93,6 +151,7 @@ function Equipos(props) {
                             placeholder='Tipo de dispositivos'
                             components={{ Menu: CustomMenu }}
                             onChange={handleInputChange}
+                            value={valueTipo}
                         />
                     </div>
                     <div className="formg-roup">

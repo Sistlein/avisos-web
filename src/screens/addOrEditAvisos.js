@@ -9,8 +9,18 @@ import AddClientes from './addOrEditClientes'
 function Avisos() {
     const avisoInicial = {
         numero: '',
-        cliente: '',
-        equipo: '',
+        nombre: '',
+        direccion: '',
+        telefono: '',
+        nombreT:'',
+        telefonoT:'',
+        emailT:'',
+        email: '',
+        localidad: '',
+        tipo: '',
+        marca: '',
+        modelo: '',
+        sn: '',
         averia: '',
         entrada: '',
         salida: '',
@@ -33,14 +43,15 @@ function Avisos() {
     }
 
     const addAviso = async () => {
-        await db.collection("avisos").doc().set(aviso)
+        console.log(aviso)
+        await db.collection("avisos").doc(aviso.numero).set(aviso)
         clearImput()
     }
     const getClientes = (tipo) => {
-        db.collection('clientes').where("tipo", "==", tipo).onSnapshot((items) => {
+        db.collection('clientes').where("cliente", "==", tipo).onSnapshot((items) => {
             items.forEach(item => {
-                if (tipo === 'cliente') {
-                    clientesOptions.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().mail })
+                if (tipo) {
+                    clientesOptions.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().email })
                 } else {
                     tecnicosOptions.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().mail })
                 }
@@ -48,27 +59,57 @@ function Avisos() {
         })
     }
     const getEquipos = (cliente) => {
-        db.collection('equipos').where("cliente", "==", cliente).onSnapshot((items) => {
-            items.forEach(item => {
-                equiposOptions.push({ value: item.id, label: item.data().tipo + ' - ' + item.data().marca + ' - ' + item.data().modelo + ' - ' + item.data().sn })
+        console.log(cliente)
+        if (cliente) {
+            console.log('dentro'+cliente)
+            db.collection('equipos').where("nombre", "==", cliente).onSnapshot((items) => {
+                items.forEach(item => {
+                    equiposOptions.push({ value: item.id, label: item.data().tipo + ' - ' + item.data().marca + ' - ' + item.data().modelo + ' - ' + item.data().sn })
 
+                })
             })
-        })
+        }
     }
 
 
     const handleClienteChange = (newValue) => {
-        setAviso({ ...aviso, cliente: newValue.value })
+        db.collection('clientes').doc(newValue.value).onSnapshot((doc) => {
+            if (doc.exists) {
+                setAviso({ ...aviso, nombre: doc.data().nombre , direccion: doc.data().direccion , telefono: doc.data().telefono , localidad: doc.data().localidad, email: doc.data().email })
+            } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+            }
+        })
+    };
+    const handleTecnicoChange = (newValue) => {
+        db.collection('clientes').doc(newValue.value).onSnapshot((doc) => {
+            if (doc.exists) {
+                setAviso({ ...aviso, nombreT: doc.data().nombre, telefonoT: doc.data().telefono, emailT: doc.data().email })
+            } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+            }
+        })
     };
 
     const handleEquipoChange = (newValue) => {
-        setAviso({ ...aviso, equipo: newValue.value })
+        db.collection('equipos').doc(newValue.value).onSnapshot((doc) => {
+            if (doc.exists) {
+                setAviso({ ...aviso, marca: doc.data().marca , modelo: doc.data().modelo, tipo: doc.data().tipo, sn: doc.data().sn })
+            } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+            }
+        })
     };
 
     useEffect(() => {
-        getEquipos(aviso.cliente);
-        getClientes('cliente');
-        getClientes('tecnico');
+        console.log(aviso)
+        getEquipos(aviso.nombre);
+        getClientes(true);
+        getClientes(false);
+       
     })
 
     const CustomMenuEquipo = ({ innerRef, innerProps, isDisabled, children }) =>
@@ -91,7 +132,7 @@ function Avisos() {
                 >Add New</button>
             </div>
         ) : null
-        const CustomMenuTecnico = ({ innerRef, innerProps, isDisabled, children }) =>
+    const CustomMenuTecnico = ({ innerRef, innerProps, isDisabled, children }) =>
         !isDisabled ? (
             <div ref={innerRef} {...innerProps} className="customReactSelectMenu">
                 {children}
@@ -129,7 +170,7 @@ function Avisos() {
                 style={customStyles}
             >
                 <button onClick={() => setModalCliente(false)}>Cerrar</button>
-                <AddClientes modal={setModalCliente} tipo='cliente'/>
+                <AddClientes modal={setModalCliente} tipo='cliente' />
             </Modal>
             <Modal
                 isOpen={modalTecnico}
@@ -160,7 +201,7 @@ function Avisos() {
                             options={tecnicosOptions}
                             placeholder='Selecione Cliente'
                             components={{ Menu: CustomMenuTecnico }}
-                            onChange={handleClienteChange}
+                            onChange={handleTecnicoChange}
                         />
                     </div>
                     <div className="formg-roup">

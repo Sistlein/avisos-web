@@ -5,10 +5,10 @@ import paginationFactory from 'react-bootstrap-table2-paginator';
 import ToolkitProvider, { Search } from 'react-bootstrap-table2-toolkit';
 import { Button } from 'react-bootstrap';
 
-export default function ListadoAvisos() {
+export default function Listadoequipos(props) {
     const [listado, setListado] = useState([])
     const getAvisos = async () => {
-        db.collection("avisos").onSnapshot((querySnapshot) => {
+        db.collection("equipos").onSnapshot((querySnapshot) => {
             const avisos = []
             querySnapshot.forEach((aviso) => {
                 avisos.push(aviso.data())
@@ -22,28 +22,24 @@ export default function ListadoAvisos() {
     const { SearchBar } = Search;
 
     const columns = [{
-        dataField: 'numero',
-        text: 'Averia',
-        sort: true
-    }, {
-        dataField: 'nombre',
-        text: 'Cliente',
+        dataField: 'tipo',
+        text: 'Tipo',
         sort: true
     }, {
         dataField: 'marca',
         text: 'Marca',
         sort: true
-    },{
+    }, {
         dataField: 'modelo',
         text: 'Modelo',
         sort: true
-    },{
+    }, {
         dataField: 'sn',
         text: 'Serial',
         sort: true
     }, {
-        dataField: 'salida'+'entrada',
-        text: 'Fecha de Solución',
+        dataField: 'nombre',
+        text: 'Cliente',
         sort: true
     }, {
         text: 'Acciones',
@@ -52,18 +48,21 @@ export default function ListadoAvisos() {
             return <><Button
                 variant="outline-primary"
                 onClick={() => {
-                    console.log('Product of Category ' + row.numero + ' deleted');
+                    props.history.push({
+                        pathname:'/EquiposModificar',
+                        state:{equipo:row.id}
+                });
                 }}>
                 Abrir
              </Button>
-                <Button
+             <Button
                     style={{ marginLeft: 10 }}
                     variant="outline-danger"
-                    onClick={() => {if (window.confirm('¿Seguro que desea eliminar el aviso?')) 
-                    db.collection("avisos").doc(row.numero).delete().then(() => {
-                        console.log("Document successfully deleted!");
+                    onClick={() => {if (window.confirm('¿Seguro que desea eliminar el equipo?')) 
+                    db.collection("equipos").doc(row.id).delete().then(() => {
+                        alert('Equipo eliminado correctamente')
                     }).catch((error) => {
-                        console.error("Error removing document: ", error);
+                        alert('Error al intentar eliminar el equipo')
                     }); } 
                     }>
                     Eliminar
@@ -78,7 +77,7 @@ export default function ListadoAvisos() {
 
     return (
         <ToolkitProvider
-            keyField="numero"
+            keyField="id"
             data={listado}
             columns={columns}
             search
@@ -86,10 +85,13 @@ export default function ListadoAvisos() {
             {
                 props => (
                     <div>
-                        <h1>Listado de incidencias</h1>
-                        <SearchBar {...props.searchProps} />
+                        <h1>Listado de equipos</h1>
+                        <SearchBar {...props.searchProps} placeholder='Buscar'/>
                         <BootstrapTable
                             bootstrap4
+                            keyField="id"
+                            data={listado}
+                            columns={columns}
                             defaultSorted={defaultSorted}
                             pagination={paginationFactory()}
                             {...props.baseProps}
