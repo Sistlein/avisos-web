@@ -4,17 +4,19 @@ import { db } from '../component/fire'
 import Modal from 'react-modal'
 import AddEquipos from './addOrEditEquipos'
 import AddClientes from './addOrEditClientes'
+import { Button } from 'react-bootstrap'
+import { useLocation } from 'react-router'
 
 
-function Avisos() {
+function Avisos(props) {
     const avisoInicial = {
         numero: '',
         nombre: '',
         direccion: '',
         telefono: '',
-        nombreT:'',
-        telefonoT:'',
-        emailT:'',
+        nombreT: '',
+        telefonoT: '',
+        emailT: '',
         email: '',
         localidad: '',
         tipo: '',
@@ -26,15 +28,22 @@ function Avisos() {
         salida: '',
         descripcion: '',
     }
-    const clientesOptions = []
-    const tecnicosOptions = []
-    const equiposOptions = []
+    const [clientesOptions, setClienteOptions] = useState([])
+    const [tecnicosOptions, setTecnicosOptios] = useState([])
+    const [equiposOptions, setEquiposOptions] = useState([])
+    const [clientesOptionsDefault, setClienteOptionsDefault] = useState()
+    const [tecnicosOptionsDefault, setTecnicosOptiosDefault] = useState()
+    const [equiposOptionsDefault, setEquiposOptionsDefault] = useState()
     const [aviso, setAviso] = useState(avisoInicial)
     const [modalEquipo, setModalEquipo] = useState(false)
     const [modalCliente, setModalCliente] = useState(false)
     const [modalTecnico, setModalTecnico] = useState(false)
+    const [cambio, setCambio] = useState(false)
     const clearImput = () => {
         setAviso(avisoInicial)
+        setClienteOptionsDefault(null)
+        setTecnicosOptiosDefault(null)
+        setEquiposOptionsDefault(null)
     }
 
     const handleChangeInput = (e) => {
@@ -42,32 +51,42 @@ function Avisos() {
         setAviso({ ...aviso, [name]: value })
     }
 
+    const location = useLocation()
+
     const addAviso = async () => {
         console.log(aviso)
         await db.collection("avisos").doc(aviso.numero).set(aviso)
         clearImput()
+        props.history.push('/');
     }
     const getClientes = (tipo) => {
+        const local = []
         db.collection('clientes').where("cliente", "==", tipo).onSnapshot((items) => {
             items.forEach(item => {
                 if (tipo) {
-                    clientesOptions.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().email })
+                    local.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().email })
                 } else {
-                    tecnicosOptions.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().mail })
+                    local.push({ value: item.id, label: item.data().nombre + ' - ' + item.data().telefono + ' - ' + item.data().mail })
                 }
             })
+            if (tipo) {
+                setClienteOptions(local)
+            } else {
+                setTecnicosOptios(local)
+            }
         })
     }
     const getEquipos = (cliente) => {
-        console.log(cliente)
+        const local = []
         if (cliente) {
-            console.log('dentro'+cliente)
-            db.collection('equipos').where("nombre", "==", cliente).onSnapshot((items) => {
+            console.log('dentro' + cliente)
+            db.collection('equipos').where("email", "==", cliente).onSnapshot((items) => {
                 items.forEach(item => {
-                    equiposOptions.push({ value: item.id, label: item.data().tipo + ' - ' + item.data().marca + ' - ' + item.data().modelo + ' - ' + item.data().sn })
+                    local.push({ value: item.id, label: item.data().tipo + ' - ' + item.data().marca + ' - ' + item.data().modelo + ' - ' + item.data().sn })
 
                 })
             })
+            setEquiposOptions(local)
         }
     }
 
@@ -75,9 +94,11 @@ function Avisos() {
     const handleClienteChange = (newValue) => {
         db.collection('clientes').doc(newValue.value).onSnapshot((doc) => {
             if (doc.exists) {
-                setAviso({ ...aviso, nombre: doc.data().nombre , direccion: doc.data().direccion , telefono: doc.data().telefono , localidad: doc.data().localidad, email: doc.data().email })
+                setAviso({ ...aviso, nombre: doc.data().nombre, direccion: doc.data().direccion, telefono: doc.data().telefono, localidad: doc.data().localidad, email: doc.data().email })
+                setClienteOptionsDefault({ value: doc.data().email, label: doc.data().nombre + '-' + doc.data().telefono + '-' + doc.data().email })
+                setEquiposOptionsDefault(null)
+                getEquipos(doc.data().email);
             } else {
-                // doc.data() will be undefined in this case
                 console.log("No such document!");
             }
         })
@@ -86,6 +107,7 @@ function Avisos() {
         db.collection('clientes').doc(newValue.value).onSnapshot((doc) => {
             if (doc.exists) {
                 setAviso({ ...aviso, nombreT: doc.data().nombre, telefonoT: doc.data().telefono, emailT: doc.data().email })
+                setTecnicosOptiosDefault({ value: doc.data().email, label: doc.data().nombre + '-' + doc.data().telefono + '-' + doc.data().email })
             } else {
                 // doc.data() will be undefined in this case
                 console.log("No such document!");
@@ -96,7 +118,8 @@ function Avisos() {
     const handleEquipoChange = (newValue) => {
         db.collection('equipos').doc(newValue.value).onSnapshot((doc) => {
             if (doc.exists) {
-                setAviso({ ...aviso, marca: doc.data().marca , modelo: doc.data().modelo, tipo: doc.data().tipo, sn: doc.data().sn })
+                setAviso({ ...aviso, marca: doc.data().marca, modelo: doc.data().modelo, tipo: doc.data().tipo, sn: doc.data().sn, equipoId: doc.data().id })
+                setEquiposOptionsDefault({ value: doc.data().equipoId, label: doc.data().tipo + '-' + doc.data().marca + '-' + doc.data().modelo + '-' + doc.data().sn })
             } else {
                 // doc.data() will be undefined in this case
                 console.log("No such document!");
@@ -104,13 +127,27 @@ function Avisos() {
         })
     };
 
+    const getAviso = async () => {
+        if (location.state) {
+            setCambio(true)
+            db.collection("avisos").doc(location.state.aviso).onSnapshot((aviso) => {
+                if (aviso.exists) {
+                    setClienteOptionsDefault({ value: aviso.data().email, label: aviso.data().nombre + '-' + aviso.data().telefono + '-' + aviso.data().email })
+                    getEquipos(aviso.data().equipoId)
+                    setTecnicosOptiosDefault({ value: aviso.data().emailT, label: aviso.data().nombreT + '-' + aviso.data().telefonoT + '-' + aviso.data().emailT })
+                    setEquiposOptionsDefault({ value: aviso.data().equipoId, label: aviso.data().tipo + '-' + aviso.data().marca + '-' + aviso.data().modelo + '-' + aviso.data().sn })
+                    setAviso(aviso.data())
+                }
+            })
+        }
+    }
+
     useEffect(() => {
-        console.log(aviso)
-        getEquipos(aviso.nombre);
         getClientes(true);
         getClientes(false);
-       
-    })
+        getAviso(false);
+
+    }, [])
 
     const CustomMenuEquipo = ({ innerRef, innerProps, isDisabled, children }) =>
         !isDisabled ? (
@@ -154,6 +191,15 @@ function Avisos() {
             background: "#2b3e50"
         }
     };
+    const colourStyles = {
+        option: (styles, { isFocused }) => {
+          return {
+            ...styles,
+            backgroundColor: isFocused ? '#df691a' : 'white',
+            color: '#2b3e50',
+          };
+        },
+      };
 
     return (
 
@@ -200,8 +246,10 @@ function Avisos() {
                         <AsyncSelect
                             options={tecnicosOptions}
                             placeholder='Selecione Cliente'
-                            components={{ Menu: CustomMenuTecnico }}
+                            //components={{ Menu: CustomMenuTecnico }}
                             onChange={handleTecnicoChange}
+                            value={tecnicosOptionsDefault}
+                            styles={colourStyles}
                         />
                     </div>
                     <div className="formg-roup">
@@ -209,8 +257,10 @@ function Avisos() {
                         <AsyncSelect
                             options={clientesOptions}
                             placeholder='Selecione Cliente'
-                            components={{ Menu: CustomMenuCliente }}
+                            //components={{ Menu: CustomMenuCliente }}
                             onChange={handleClienteChange}
+                            value={clientesOptionsDefault}
+                            styles={colourStyles}
                         />
                     </div>
                     <div className="formg-roup">
@@ -218,8 +268,10 @@ function Avisos() {
                         <AsyncSelect
                             options={equiposOptions}
                             placeholder='Selecione Equipo'
-                            components={{ Menu: CustomMenuEquipo }}
+                            //components={{ Menu: CustomMenuEquipo }}
                             onChange={handleEquipoChange}
+                            value={equiposOptionsDefault}
+                            styles={colourStyles}
                         />
                     </div>
                     <div className="formg-roup">
@@ -278,22 +330,22 @@ function Avisos() {
                             onChange={(e) => handleChangeInput(e)}
                         />
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'row' }}>
-                        <button
-                            className="btn btn-primary btn-block"
-                            style={{ margin: 16 }}
+                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
+                        <Button
+                            variant="outline-success"
                             onClick={() => addAviso()}
+                            style={{ marginRight: 50 }}
                         >
-                            Crear Incidencias
-                            </button>
-                        <button
-                            className="btn btn-primary btn-block"
-                            style={{ margin: 16 }}
+                            Guardar
+                            </Button>
+                        <Button
+                            variant="outline-light"
                             onClick={() => clearImput()}
                         >
                             Limpiar formulario
-                            </button>
+                            </Button>
                     </div>
+
                 </div>
 
             </section>

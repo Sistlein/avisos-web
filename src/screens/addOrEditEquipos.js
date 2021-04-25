@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useLocation } from 'react-router'
 import AsyncSelect from 'react-select'
 import { db } from '../component/fire'
+import { Button } from 'react-bootstrap'
 
 
 function Equipos(props) {
@@ -15,7 +16,7 @@ function Equipos(props) {
         telefono: '',
         email: '',
         localidad: '',
-        id:''
+        id: ''
     }
 
     const [equipo, setEquipo] = useState(equipoInicial)
@@ -27,6 +28,8 @@ function Equipos(props) {
 
     const clearImput = () => {
         setEquipo(equipoInicial)
+        setValueCliente(null)
+        setValueTipo(null)
     }
 
     const handleChangeInput = (e) => {
@@ -36,9 +39,9 @@ function Equipos(props) {
 
     const addEquipo = async () => {
         console.log(equipo)
-        if (location.state){
+        if (location.state) {
             await db.collection("equipos").doc(location.state.equipo).update(equipo)
-        }else{
+        } else {
             await db.collection("equipos").doc(equipo.id).set(equipo)
         }
         clearImput()
@@ -56,7 +59,7 @@ function Equipos(props) {
 
     }
 
-    const location=useLocation()
+    const location = useLocation()
 
     const getEquipo = async () => {
         if (location.state) {
@@ -114,6 +117,15 @@ function Equipos(props) {
                 >Add New</button>
             </div>
         ) : null
+    const colourStyles = {
+        option: (styles, { isFocused }) => {
+            return {
+                ...styles,
+                backgroundColor: isFocused ? '#df691a' : 'white',
+                color: '#2b3e50',
+            };
+        },
+    };
 
     return (
         <div className="Equipos">
@@ -124,7 +136,7 @@ function Equipos(props) {
                     <div className="formg-roup">
                         <label>Codigo</label>
                         <input
-                         disabled={cambio}
+                            disabled={cambio}
                             type="text"
                             name="id"
                             className="form-control"
@@ -139,9 +151,10 @@ function Equipos(props) {
                         <AsyncSelect
                             options={clientesOptions}
                             placeholder='Selecione Cliente'
-                            components={{ Menu: CustomMenu }}
+                            //components={{ Menu: CustomMenu }}
                             onChange={handleClienteChange}
                             value={valueCliente}
+                            styles={colourStyles}
                         />
                     </div>
                     <div className="formg-roup">
@@ -149,9 +162,10 @@ function Equipos(props) {
                         <AsyncSelect
                             options={tiposOptions}
                             placeholder='Tipo de dispositivos'
-                            components={{ Menu: CustomMenu }}
+                            //components={{ Menu: CustomMenu }}
                             onChange={handleInputChange}
                             value={valueTipo}
+                            styles={colourStyles}
                         />
                     </div>
                     <div className="formg-roup">
@@ -191,21 +205,20 @@ function Equipos(props) {
                         />
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'row' }}>
-                        <button
-                            className="btn btn-primary btn-block"
-                            style={{ margin: 16 }}
+                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
+                        <Button
+                            variant="outline-success"
                             onClick={() => addEquipo()}
+                            style={{ marginRight: 50 }}
                         >
-                            Crear Equipo
-                            </button>
-                        <button
-                            className="btn btn-primary btn-block"
-                            style={{ margin: 16 }}
+                            Guardar
+                            </Button>
+                        <Button
+                            variant="outline-light"
                             onClick={() => clearImput()}
                         >
                             Limpiar formulario
-                            </button>
+                            </Button>
                     </div>
                 </div>
 

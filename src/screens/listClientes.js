@@ -5,10 +5,12 @@ import paginationFactory from 'react-bootstrap-table2-paginator';
 import ToolkitProvider, { Search } from 'react-bootstrap-table2-toolkit';
 import { Button } from 'react-bootstrap';
 
-export default function ListadoAvisos() {
+export default function ListadoAvisos(props) {
     const [listado, setListado] = useState([])
     const getAvisos = async () => {
-        db.collection("avisos").onSnapshot((querySnapshot) => {
+        let cliente
+        if (props.tipo==='cliente'){cliente=true}else{cliente=false}
+        db.collection("clientes").where("cliente","==",cliente).onSnapshot((querySnapshot) => {
             const avisos = []
             querySnapshot.forEach((aviso) => {
                 avisos.push(aviso.data())
@@ -22,47 +24,58 @@ export default function ListadoAvisos() {
     const { SearchBar } = Search;
 
     const columns = [{
-        dataField: 'numero',
-        text: 'Averia',
+        dataField: 'cif',
+        text: 'Cif',
         sort: true
     }, {
         dataField: 'nombre',
-        text: 'Cliente',
+        text: 'Nombre',
         sort: true
     }, {
-        dataField: 'marca',
-        text: 'Equipo',
+        dataField: 'direccion',
+        text: 'Direccion',
         sort: true
     }, {
-        dataField: 'salida',
-        text: 'Fecha de Solución',
+        dataField: 'localidad',
+        text: 'Localidad',
+        sort: true
+    }, {
+        dataField: 'provincia',
+        text: 'Provincia',
+        sort: true
+    }, {
+        dataField: 'telefono',
+        text: 'Telefono',
+        sort: true
+    }, {
+        dataField: 'email',
+        text: 'E-mail',
         sort: true
     }, {
         text: 'Acciones',
         isDummyField: true,
         formatter: (cell, row, rowIndex) => {
             return <><Button
-                variant="outline-primary"
-                onClick={() => {
-                    console.log('Product of Category ' + row.numero + ' deleted');
-                }}>
-                Modificar
-             </Button>
+            variant="outline-primary"
+            onClick={() => {
+                props.history.push({
+                    pathname:'/ClientesModificar',
+                    state:{cliente:row.email}
+            });
+            }}>
+            Abrir
+         </Button>
                 <Button
                     style={{ marginLeft: 10 }}
                     variant="outline-danger"
-                    onClick={() => {
-                        console.log('Product of Category ' + row.numero + ' deleted');
-                    }}>
+                    onClick={() => {if (window.confirm('¿Seguro que desea eliminar el usuario?')) 
+                    db.collection("clientes").doc(row.email).delete().then(() => {
+                        alert('Usuario eliminado correctamente')
+                    }).catch((error) => {
+                        alert('Error al intentar eliminar el usuario')
+                    }); } 
+                    }>
                     Eliminar
-          </Button>
-                <Button
-                    style={{ marginLeft: 10 }}
-                    variant="outline-success"
-                    onClick={() => {
-                        console.log('Product of Category ' + row.numero + ' deleted');
-                    }}>
-                    Visualizar
           </Button></>
         }
     }];
@@ -82,8 +95,8 @@ export default function ListadoAvisos() {
             {
                 props => (
                     <div>
-                        <h1>Listado de incidencias</h1>
-                        <SearchBar {...props.searchProps} />
+                        <h1>Listado de Usuarios</h1>
+                        <SearchBar {...props.searchProps} placeholder='Buscar'/>
                         <BootstrapTable
                             bootstrap4
                             keyField="id"

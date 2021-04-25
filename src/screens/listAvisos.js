@@ -5,7 +5,7 @@ import paginationFactory from 'react-bootstrap-table2-paginator';
 import ToolkitProvider, { Search } from 'react-bootstrap-table2-toolkit';
 import { Button } from 'react-bootstrap';
 
-export default function ListadoAvisos() {
+export default function ListadoAvisos(props) {
     const [listado, setListado] = useState([])
     const getAvisos = async () => {
         db.collection("avisos").onSnapshot((querySnapshot) => {
@@ -33,16 +33,20 @@ export default function ListadoAvisos() {
         dataField: 'marca',
         text: 'Marca',
         sort: true
-    },{
+    }, {
         dataField: 'modelo',
         text: 'Modelo',
         sort: true
-    },{
+    }, {
         dataField: 'sn',
         text: 'Serial',
         sort: true
     }, {
-        dataField: 'salida'+'entrada',
+        dataField: 'entrada',
+        text: 'Fecha de Entrada',
+        sort: true
+    }, {
+        dataField: 'salida',
         text: 'Fecha de Solución',
         sort: true
     }, {
@@ -52,19 +56,24 @@ export default function ListadoAvisos() {
             return <><Button
                 variant="outline-primary"
                 onClick={() => {
-                    console.log('Product of Category ' + row.numero + ' deleted');
+                    props.history.push({
+                        pathname: '/AvisosModificar',
+                        state: { aviso: row.numero }
+                    });
                 }}>
                 Abrir
-             </Button>
+         </Button>
                 <Button
                     style={{ marginLeft: 10 }}
                     variant="outline-danger"
-                    onClick={() => {if (window.confirm('¿Seguro que desea eliminar el aviso?')) 
-                    db.collection("avisos").doc(row.numero).delete().then(() => {
-                        console.log("Document successfully deleted!");
-                    }).catch((error) => {
-                        console.error("Error removing document: ", error);
-                    }); } 
+                    onClick={() => {
+                        if (window.confirm('¿Seguro que desea eliminar el aviso?'))
+                            db.collection("avisos").doc(row.numero).delete().then(() => {
+                                console.log("Document successfully deleted!");
+                            }).catch((error) => {
+                                console.error("Error removing document: ", error);
+                            });
+                    }
                     }>
                     Eliminar
           </Button></>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { Button } from 'react-bootstrap'
+import { useLocation } from 'react-router'
 import { db,auth } from '../component/fire'
 
 
@@ -11,11 +13,13 @@ function Clientes(props) {
         telefono: '',
         email: '',
         cif: '',
-        password:'',
-        tipo: props.tipo
+        cliente: false
     }
+    const [password,setPassword]=useState()
     const [cliente, setCliente] = useState(clienteInicial)
     const [cambio, setCambio] = useState(false)
+
+    const location=useLocation()
 
     const clearImput = () => {
         setCliente(clienteInicial)
@@ -27,16 +31,18 @@ function Clientes(props) {
     }
 
     const addCliente = async () => {
-        if (props.cliente) {
-            await db.collection("clientes").doc(props.cliente).update(cliente)
+        if (location.state) {
+            await db.collection("clientes").doc(location.state.cliente).update(cliente)
+            alert('Usuario modificado correctamente')
         } else {
-            auth.createUserWithEmailAndPassword(cliente.email, cliente.password)
-                .then(data => {
-                    db.collection("clientes").doc(data.user.uid).set(cliente)
-                })
+            /*auth.createUserWithEmailAndPassword(cliente.email, password)
+                .then(data => {*/
+                    db.collection("clientes").doc(cliente.email).set(cliente)
+                    alert('Usuario creado correctamente')
+                /*})
                 .catch(error => {
                     console.log(error);
-                });
+                });*/
             
         }
         clearImput()
@@ -52,9 +58,9 @@ function Clientes(props) {
     }
 
     const getClientes = async () => {
-        if (props.cliente) {
+        if (location.state) {
             setCambio(true)
-            db.collection("clientes").doc(props.cliente).onSnapshot((cliente) => {
+            db.collection("clientes").doc(location.state.cliente).onSnapshot((cliente) => {
                 if (cliente.exists) {
                     console.log(cliente.data())
                     setCliente(cliente.data())
@@ -64,6 +70,9 @@ function Clientes(props) {
     }
 
     useEffect(() => {
+        if (props.tipo === 'cliente') {
+            setCliente({...cliente,cliente:true})
+        }
         getClientes()
     }, [])
 
@@ -96,7 +105,7 @@ function Clientes(props) {
                                     autoFocus
                                     required
                                     value={cliente.password}
-                                    onChange={(e) => handleChangeInput(e)}
+                                    onChange={(e) => setPassword(e.target.value)}
                                 />
                             </div>
                             :
@@ -179,21 +188,20 @@ function Clientes(props) {
                         />
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'row' }}>
-                        <button
-                            className="btn btn-primary btn-block"
-                            style={{ margin: 16 }}
+                    <div style={{ display: 'flex', flexDirection: 'row',justifyContent: 'center', marginTop:20 }}>
+                        <Button
+                            variant="outline-success"
                             onClick={() => addCliente()}
+                            style={{marginRight:50}}
                         >
-                            Crear Incidencias
-                            </button>
-                        <button
-                            className="btn btn-primary btn-block"
-                            style={{ margin: 16 }}
+                            Guardar
+                            </Button>
+                            <Button
+                            variant="outline-light"
                             onClick={() => clearImput()}
                         >
                             Limpiar formulario
-                            </button>
+                            </Button>
                     </div>
                 </div>
 
