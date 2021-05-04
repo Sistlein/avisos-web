@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from 'react-bootstrap'
 import { useLocation } from 'react-router'
-import { db,auth } from '../component/fire'
+import { db,auth2 } from '../component/fire'
 
 
 function Clientes(props) {
@@ -13,9 +13,9 @@ function Clientes(props) {
         telefono: '',
         email: '',
         cif: '',
-        cliente: false
+        cliente: false,
+        password:''
     }
-    const [password,setPassword]=useState()
     const [cliente, setCliente] = useState(clienteInicial)
     const [cambio, setCambio] = useState(false)
 
@@ -35,14 +35,15 @@ function Clientes(props) {
             await db.collection("clientes").doc(location.state.cliente).update(cliente)
             alert('Usuario modificado correctamente')
         } else {
-            /*auth.createUserWithEmailAndPassword(cliente.email, password)
-                .then(data => {*/
+            auth2.createUserWithEmailAndPassword(cliente.email, cliente.password)
+                .then(data => {
                     db.collection("clientes").doc(cliente.email).set(cliente)
                     alert('Usuario creado correctamente')
-                /*})
+                })
                 .catch(error => {
+                    alert(error)
                     console.log(error);
-                });*/
+                });
             
         }
         clearImput()
@@ -105,7 +106,7 @@ function Clientes(props) {
                                     autoFocus
                                     required
                                     value={cliente.password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    onChange={(e) => handleChangeInput(e)}
                                 />
                             </div>
                             :

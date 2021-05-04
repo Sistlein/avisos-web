@@ -4,8 +4,9 @@ import {
   BrowserRouter as Router,
   Switch,
   Route,
+  Redirect
 } from "react-router-dom";
-import { auth } from './component/fire'
+import { auth,db } from './component/fire'
 import { Navbar, Nav, NavDropdown, Button, Form } from 'react-bootstrap'
 import { Avisos, Equipos, Clientes, ListadoAvisos, ListadoEquipos, ListadoClientes } from './screens';
 
@@ -21,6 +22,7 @@ function App() {
     setPassword('')
   }
 
+
   const clearError = () => {
     setError('')
   }
@@ -29,6 +31,13 @@ function App() {
     clearError()
     auth
       .signInWithEmailAndPassword(email, password)
+      .then(user => {
+        db.collection("clientes").doc(email).onSnapshot((cliente => {
+          if (cliente.exists) {
+            auth.signOut()
+          }
+        }))
+      })
       .catch(err => {
         setError(err.message)
       })
@@ -41,15 +50,19 @@ function App() {
         clearImput()
       }
     })
-    console.log(user)
+  }
+  const salir = () => {
+    auth.signOut()
+    window.location.href = "/";
   }
 
   useEffect(() => {
     authListener();
-  }
+  }, []
   )
 
   if (user) {
+    console.log(user.email)
     return (
       <div>
         <div className="row" style={{ margin: 0 }}>
@@ -78,7 +91,8 @@ function App() {
                     </NavDropdown>
                   </Nav>
                   <Form inline>
-                    <Button onClick={() => auth.signOut()} variant="outline-success">Salir</Button>
+                  <Button onClick={() => salir()}
+                      variant="outline-success">Salir</Button>
                   </Form>
                 </Navbar.Collapse>
               </Navbar>
@@ -123,7 +137,7 @@ function App() {
 
                 <Route path="/AvisosListado" render={routeProps =>
                   <ListadoAvisos {...routeProps} />} />
-                
+
                 <Route path="/AvisosModificar" render={routeProps =>
                   <Avisos {...routeProps} />} />
 
