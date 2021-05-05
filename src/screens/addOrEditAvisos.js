@@ -6,6 +6,7 @@ import AddEquipos from './addOrEditEquipos'
 import AddClientes from './addOrEditClientes'
 import { Button } from 'react-bootstrap'
 import { useLocation } from 'react-router'
+import Moment from 'moment'
 
 
 function Avisos(props) {
@@ -38,6 +39,8 @@ function Avisos(props) {
     const [modalEquipo, setModalEquipo] = useState(false)
     const [modalCliente, setModalCliente] = useState(false)
     const [modalTecnico, setModalTecnico] = useState(false)
+    const [entradaMostrar, setEntradaMostrar] = useState(false)
+    const [salidaMostrar, setSalidaMostrar] = useState(false)
     const [cambio, setCambio] = useState(false)
     const clearImput = () => {
         setAviso(avisoInicial)
@@ -48,16 +51,28 @@ function Avisos(props) {
 
     const handleChangeInput = (e) => {
         const { name, value } = e.target
-        setAviso({ ...aviso, [name]: value })
+        if (name === 'entrada' || name === 'salida') {
+            setAviso({ ...aviso, [name]: Moment(value).format('DD/MM/yy HH:mm') })
+            if (name == 'entrada') {
+                setEntradaMostrar(Moment(value).format('yyyy-MM-DDThh:mm'))
+            } else {
+                setSalidaMostrar(Moment(value).format('yyyy-MM-DDThh:mm'))
+            }
+        } else {
+            setAviso({ ...aviso, [name]: value })
+        }
     }
 
     const location = useLocation()
 
     const addAviso = async () => {
-        console.log(aviso)
-        await db.collection("avisos").doc(aviso.numero).set(aviso)
-        clearImput()
-        props.history.push('/');
+        if (salidaMostrar < entradaMostrar) {
+            alert('La fecha de salida no puede ser inferior a la fecha de entrada')
+        } else {
+            await db.collection("avisos").doc(aviso.numero).set(aviso)
+            clearImput()
+            props.history.push('/');
+        }
     }
     const getClientes = (tipo) => {
         const local = []
@@ -137,6 +152,11 @@ function Avisos(props) {
                     setTecnicosOptiosDefault({ value: aviso.data().emailT, label: aviso.data().nombreT + '-' + aviso.data().telefonoT + '-' + aviso.data().emailT })
                     setEquiposOptionsDefault({ value: aviso.data().equipoId, label: aviso.data().tipo + '-' + aviso.data().marca + '-' + aviso.data().modelo + '-' + aviso.data().sn })
                     setAviso(aviso.data())
+                    console.log(aviso.data().entrada + '------------------------------------------------------' + Moment(aviso.data().entrada, 'DD-MM-YYYYTkk:mm').toDate())
+                    let fechanueva = Moment(aviso.data().entrada, 'DD-MM-YYYYTkk:mm').toDate()
+                    setEntradaMostrar(Moment(fechanueva).format('yyyy-MM-DDThh:mm'))
+                    fechanueva = Moment(aviso.data().salida, 'DD-MM-YYYYTkk:mm').toDate()
+                    setSalidaMostrar(Moment(fechanueva).format('yyyy-MM-DDThh:mm'))
                 }
             })
         }
@@ -193,13 +213,13 @@ function Avisos(props) {
     };
     const colourStyles = {
         option: (styles, { isFocused }) => {
-          return {
-            ...styles,
-            backgroundColor: isFocused ? '#df691a' : 'white',
-            color: '#2b3e50',
-          };
+            return {
+                ...styles,
+                backgroundColor: isFocused ? '#df691a' : 'white',
+                color: '#2b3e50',
+            };
         },
-      };
+    };
 
     return (
 
@@ -245,7 +265,7 @@ function Avisos(props) {
                         <label>Tecnico</label>
                         <AsyncSelect
                             options={tecnicosOptions}
-                            placeholder='Selecione Cliente'
+                            placeholder='Selecione Tecnico'
                             //components={{ Menu: CustomMenuTecnico }}
                             onChange={handleTecnicoChange}
                             value={tecnicosOptionsDefault}
@@ -281,7 +301,7 @@ function Avisos(props) {
                             type="text"
                             name="averia"
                             className="form-control"
-                            placeholder="Enter email"
+                            placeholder="Averia"
                             autoFocus
                             required
                             value={aviso.averia}
@@ -292,12 +312,13 @@ function Avisos(props) {
                         <div className="formg-roup" >
                             <label>Entrada</label>
                             <input
+                                visible='false'
                                 type='datetime-local'
                                 name="entrada"
                                 className="form-control"
                                 autoFocus
                                 required
-                                value={aviso.entrada}
+                                value={entradaMostrar}
                                 onChange={(e) => handleChangeInput(e)}
                             />
                         </div>
@@ -310,7 +331,7 @@ function Avisos(props) {
                                 placeholder="Enter email"
                                 autoFocus
                                 required
-                                value={aviso.salida}
+                                value={salidaMostrar}
                                 onChange={(e) => handleChangeInput(e)}
                             />
                         </div>
@@ -323,7 +344,7 @@ function Avisos(props) {
                             rows="3"
                             type="text"
                             className="form-control"
-                            placeholder="Enter email"
+                            placeholder="Descripcion"
                             autoFocus
                             required
                             value={aviso.descripcion}
