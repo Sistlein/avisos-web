@@ -32,6 +32,7 @@ function Avisos(props) {
     const [clientesOptions, setClienteOptions] = useState([])
     const [tecnicosOptions, setTecnicosOptios] = useState([])
     const [equiposOptions, setEquiposOptions] = useState([])
+    const [cambio, setCambio] = useState(false)
     const [clientesOptionsDefault, setClienteOptionsDefault] = useState()
     const [tecnicosOptionsDefault, setTecnicosOptiosDefault] = useState()
     const [equiposOptionsDefault, setEquiposOptionsDefault] = useState()
