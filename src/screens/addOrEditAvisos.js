@@ -36,12 +36,8 @@ function Avisos(props) {
     const [tecnicosOptionsDefault, setTecnicosOptiosDefault] = useState()
     const [equiposOptionsDefault, setEquiposOptionsDefault] = useState()
     const [aviso, setAviso] = useState(avisoInicial)
-    const [modalEquipo, setModalEquipo] = useState(false)
-    const [modalCliente, setModalCliente] = useState(false)
-    const [modalTecnico, setModalTecnico] = useState(false)
     const [entradaMostrar, setEntradaMostrar] = useState(false)
     const [salidaMostrar, setSalidaMostrar] = useState(false)
-    const [cambio, setCambio] = useState(false)
     const clearImput = () => {
         setAviso(avisoInicial)
         setClienteOptionsDefault(null)
