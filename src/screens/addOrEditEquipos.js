@@ -42,10 +42,16 @@ function Equipos(props) {
         if (location.state) {
             await db.collection("equipos").doc(location.state.equipo).update(equipo)
         } else {
-            await db.collection("equipos").doc(equipo.id).set(equipo)
+            if (equipo.id != '' && equipo.email != '' && equipo.tipo != '' && equipo.marca != '' && equipo.modelo != '' && equipo.sn != '') {
+                await db.collection("equipos").doc(equipo.id).set(equipo)
+                console.log('Equipo agregado correctamente')
+                clearImput()
+                props.history.push('/');
+            } else {
+                alert('Faltan datos por cumplimentar, deben de rellenarse todos los campos')
+            }
         }
-        clearImput()
-        props.history.push('/');
+
     }
 
     const getTipo = async () => {

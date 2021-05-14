@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from 'react-bootstrap'
 import { useLocation } from 'react-router'
-import { db,auth2 } from '../component/fire'
-
+import { db, auth2 } from '../component/fire'
+import InputMask from 'react-input-mask';
 
 function Clientes(props) {
     const clienteInicial = {
@@ -14,12 +14,12 @@ function Clientes(props) {
         email: '',
         cif: '',
         cliente: false,
-        password:''
+        password: ''
     }
     const [cliente, setCliente] = useState(clienteInicial)
     const [cambio, setCambio] = useState(false)
 
-    const location=useLocation()
+    const location = useLocation()
 
     const clearImput = () => {
         setCliente(clienteInicial)
@@ -35,19 +35,23 @@ function Clientes(props) {
             await db.collection("clientes").doc(location.state.cliente).update(cliente)
             alert('Usuario modificado correctamente')
         } else {
-            auth2.createUserWithEmailAndPassword(cliente.email, cliente.password)
-                .then(data => {
-                    db.collection("clientes").doc(cliente.email).set(cliente)
-                    alert('Usuario creado correctamente')
-                })
-                .catch(error => {
-                    alert(error)
-                    console.log(error);
-                });
-            
+            if (cliente.nombre != '' && cliente.telefono != '') {
+                auth2.createUserWithEmailAndPassword(cliente.email, cliente.password)
+                    .then(data => {
+                        db.collection("clientes").doc(cliente.email).set(cliente)
+                        alert('Usuario creado correctamente')
+                        clearImput()
+                        props.history.push('/');
+                    })
+                    .catch(error => {
+                        alert(error)
+                        console.log(error);
+                    });
+            }else{
+                alert("Como minimo debo de rellenar los campos con *")
+            }
         }
-        clearImput()
-        props.history.push('/');
+
     }
     const LabelTipo = () => {
         console.log('tipo' + props.tipo)
@@ -72,7 +76,7 @@ function Clientes(props) {
 
     useEffect(() => {
         if (props.tipo === 'cliente') {
-            setCliente({...cliente,cliente:true})
+            setCliente({ ...cliente, cliente: true })
         }
         getClientes()
     }, [])
@@ -83,7 +87,7 @@ function Clientes(props) {
             <section className='login'>
                 <div className='container' style={{ width: 450 }} >
                     <div className="formg-roup" >
-                        <label>Email</label>
+                        <label>Email *</label>
                         <input
                             disabled={cambio}
                             name="email"
@@ -98,7 +102,7 @@ function Clientes(props) {
                     <span>
                         {cambio === false ?
                             <div className="formg-roup" >
-                                <label>Password</label>
+                                <label>Password *</label>
                                 <input
                                     name="password"
                                     type="password"
@@ -125,7 +129,7 @@ function Clientes(props) {
                         />
                     </div>
                     <div className="formg-roup">
-                        <label>Nombre</label>
+                        <label>Nombre *</label>
                         <input
                             type="text"
                             name="nombre"
@@ -137,7 +141,7 @@ function Clientes(props) {
                         />
                     </div>
                     <div className="formg-roup">
-                        <label>Dirección</label>
+                        <label>Dirección </label>
                         <input
                             type="text"
                             name="direccion"
@@ -177,8 +181,9 @@ function Clientes(props) {
 
                     </div>
                     <div className="formg-roup">
-                        <label>telefono</label>
-                        <input
+                        <label>telefono *</label>
+                        <InputMask
+                            mask="999999999"
                             type='text'
                             name="telefono"
                             className="form-control"
@@ -189,15 +194,15 @@ function Clientes(props) {
                         />
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'row',justifyContent: 'center', marginTop:20 }}>
+                    <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: 20 }}>
                         <Button
                             variant="outline-success"
                             onClick={() => addCliente()}
-                            style={{marginRight:50}}
+                            style={{ marginRight: 50 }}
                         >
                             Guardar
                             </Button>
-                            <Button
+                        <Button
                             variant="outline-light"
                             onClick={() => clearImput()}
                         >

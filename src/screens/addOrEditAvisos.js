@@ -69,9 +69,14 @@ function Avisos(props) {
         if (salidaMostrar < entradaMostrar) {
             alert('La fecha de salida no puede ser inferior a la fecha de entrada')
         } else {
-            await db.collection("avisos").doc(aviso.numero).set(aviso)
-            clearImput()
-            props.history.push('/');
+            if (aviso.numero !='' && aviso.emailT!='' && aviso.email!='' && aviso.sn!='' && aviso.averia!='') {
+                await db.collection("avisos").doc(aviso.numero).set(aviso)
+                console.log('Aviso creado correctamente')
+                clearImput()
+                props.history.push('/');
+            } else {
+                alert('Faltan datos impresindible para crear la incidencia, relleno todos los campos con asterisco')
+            }
         }
     }
     const getClientes = (tipo) => {
@@ -168,38 +173,6 @@ function Avisos(props) {
         getAviso(false);
 
     }, [])
-
-    const CustomMenuEquipo = ({ innerRef, innerProps, isDisabled, children }) =>
-        !isDisabled ? (
-            <div ref={innerRef} {...innerProps} className="customReactSelectMenu">
-                {children}
-                <button
-                    className="btn btn-info btn-sm btn-block"
-                    onClick={() => setModalEquipo(true)}
-                >Add New</button>
-            </div>
-        ) : null
-    const CustomMenuCliente = ({ innerRef, innerProps, isDisabled, children }) =>
-        !isDisabled ? (
-            <div ref={innerRef} {...innerProps} className="customReactSelectMenu">
-                {children}
-                <button
-                    className="btn btn-info btn-sm btn-block"
-                    onClick={() => setModalCliente(true)}
-                >Add New</button>
-            </div>
-        ) : null
-    const CustomMenuTecnico = ({ innerRef, innerProps, isDisabled, children }) =>
-        !isDisabled ? (
-            <div ref={innerRef} {...innerProps} className="customReactSelectMenu">
-                {children}
-                <button
-                    className="btn btn-info btn-sm btn-block"
-                    onClick={() => setModalTecnico(true)}
-                >Add New</button>
-            </div>
-        ) : null
-
     const customStyles = {
         content: {
             top: '50%',
@@ -224,32 +197,12 @@ function Avisos(props) {
     return (
 
         <div className="App" >
-            <Modal
-                isOpen={modalEquipo}
-                style={customStyles}
-            >
-                <button onClick={() => setModalEquipo(false)}>Cerrar</button>
-                <AddEquipos modal={setModalEquipo} />
-            </Modal>
-            <Modal
-                isOpen={modalCliente}
-                style={customStyles}
-            >
-                <button onClick={() => setModalCliente(false)}>Cerrar</button>
-                <AddClientes modal={setModalCliente} tipo='cliente' />
-            </Modal>
-            <Modal
-                isOpen={modalTecnico}
-                style={customStyles}
-            >
-                <button onClick={() => setModalTecnico(false)}>Cerrar</button>
-                <AddClientes modal={setModalTecnico} tipo='tecnico' />
-            </Modal>
+          
 
             <section className='login'>
                 <div className='container' style={{ width: 600 }} >
                     <div className="formg-roup">
-                        <label>Numero</label>
+                        <label>Numero *</label>
                         <input
                             name="numero"
                             type="text"
@@ -262,7 +215,7 @@ function Avisos(props) {
                         />
                     </div>
                     <div className="formg-roup">
-                        <label>Tecnico</label>
+                        <label>Tecnico *</label>
                         <AsyncSelect
                             options={tecnicosOptions}
                             placeholder='Selecione Tecnico'
@@ -273,7 +226,7 @@ function Avisos(props) {
                         />
                     </div>
                     <div className="formg-roup">
-                        <label>Cliente</label>
+                        <label>Cliente *</label>
                         <AsyncSelect
                             options={clientesOptions}
                             placeholder='Selecione Cliente'
@@ -284,7 +237,7 @@ function Avisos(props) {
                         />
                     </div>
                     <div className="formg-roup">
-                        <label>Equipo</label>
+                        <label>Equipo *</label>
                         <AsyncSelect
                             options={equiposOptions}
                             placeholder='Selecione Equipo'
@@ -295,7 +248,7 @@ function Avisos(props) {
                         />
                     </div>
                     <div className="formg-roup">
-                        <label>Averia</label>
+                        <label>Averia *</label>
                         <textarea
                             rows='3'
                             type="text"
